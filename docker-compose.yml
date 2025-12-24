@@ -1,0 +1,9 @@
+version: '3.8'
+services:
+  pilates-flow:
+    build: .
+    # O Easypanel geralmente tem uma interface para gerenciar variáveis de ambiente por serviço.
+    # Se você quiser que o docker-compose lide com isso localmente, use um arquivo .env
+    # environment:
+    #   - GEMINI_API_KEY=${GEMINI_API_KEY} 
+    restart: unless-stopped
