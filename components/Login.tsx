@@ -58,7 +58,8 @@ const Login: React.FC = () => {
             role: 'superadmin', 
             license: { status: 'active', expiresAt: new Date(new Date().setFullYear(new Date().getFullYear() + 5)).toISOString() } 
         };
-        dispatch({ type: 'LOGIN', payload: { user: userSession } });
+        // FIX: Added missing 'token' property to LOGIN action payload
+        dispatch({ type: 'LOGIN', payload: { user: userSession, token: 'mock_superadmin_token' } });
         setIsLoading(false);
         return;
       }
@@ -85,9 +86,10 @@ const Login: React.FC = () => {
           subscriptionPlanId: client.subscriptionPlanId,
         };
 
+        // FIX: Added missing 'token' property to LOGIN action payload
         dispatch({
           type: 'LOGIN',
-          payload: { user: userSession, settings: client.settings },
+          payload: { user: userSession, settings: client.settings, token: 'mock_admin_token' },
         });
         setIsLoading(false);
         return;
@@ -122,7 +124,8 @@ const Login: React.FC = () => {
            license: { status: licenseStatusMap[ownerClient.licenseStatus], expiresAt: isoDate },
            subscriptionPlanId: ownerClient.subscriptionPlanId,
         };
-        dispatch({ type: 'LOGIN', payload: { user: userSession, settings: ownerClient.settings } });
+        // FIX: Added missing 'token' property to LOGIN action payload
+        dispatch({ type: 'LOGIN', payload: { user: userSession, settings: ownerClient.settings, token: 'mock_instructor_token' } });
       } else {
         setError('Documento ou senha inválidos. Tente novamente.');
       }
