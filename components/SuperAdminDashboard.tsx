@@ -123,7 +123,7 @@ const SuperAdminDashboard: React.FC = () => {
             if (!data.erro) {
                 setFormData(prev => ({...prev!, settings: {...prev!.settings!, address: {
                     ...prev!.settings!.address!,
-                    street: data.logradouro, neighborhood: data.bairro, city: data.localidade, state: data.uf,
+                    street: data.logouro, neighborhood: data.bairro, city: data.localidade, state: data.uf,
                 }}}));
             }
           } catch (e) { console.error("Erro ao buscar CEP"); } finally { setIsLoadingCep(false); }
@@ -303,7 +303,7 @@ const SuperAdminDashboard: React.FC = () => {
                     {activeSuperAdminTab === 'settings' && <SuperAdminSettings />}
                 </div>
                 <footer className="mt-12 text-center text-xs text-slate-400 dark:text-gray-600 pb-8 relative z-10">
-                    © 2025 Powered by <a href="https://cod3-ss.vercel.app/" target="_blank" rel="noopener noreferrer" className="font-semibold text-sky-500 hover:underline">COD3 Software Solution</a>
+                    © {new Date().getFullYear()} Powered by <a href="https://cod3-ss.vercel.app/" target="_blank" rel="noopener noreferrer" className="font-semibold text-sky-500 hover:underline">COD3 Software Solutions</a>
                 </footer>
             </main>
 

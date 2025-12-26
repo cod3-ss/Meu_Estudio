@@ -12,7 +12,7 @@ const Agenda: React.FC = () => {
   const isAdmin = user?.role === 'admin';
   
   const [view, setView] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
-  const [currentDate, setCurrentDate] = useState(new Date()); // 22 de Dezembro, 2025
+  const [currentDate, setCurrentDate] = useState(new Date()); 
   const [isInstructorOpen, setIsInstructorOpen] = useState(false);
   // Se for instrutor, já começa filtrado por ele mesmo
   const [selectedInstructor, setSelectedInstructor] = useState<string | null>(!isAdmin ? user?.name || null : null);
@@ -67,7 +67,7 @@ const Agenda: React.FC = () => {
         }
       });
     }
-  }, [currentDate, appointments, settings, students]); // Roda quando a data ou agenda mudam (simula verificação diária)
+  }, [currentDate, appointments, settings, students]);
 
 
   const timeSlots = Array.from({ length: 17 }, (_, i) => `${(i + 6).toString().padStart(2, '0')}:00`);
@@ -114,6 +114,11 @@ const Agenda: React.FC = () => {
       : ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
     return names[date.getDay()];
   };
+
+  const getDayNameFromIndex = (idx: number) => {
+    const days = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'];
+    return days[idx];
+  };
   
   const getFullMonthName = (date: Date) => date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 
@@ -136,7 +141,7 @@ const Agenda: React.FC = () => {
     setIsModalOpen(true);
   };
   
-  const handleSave = async () => { // Adicionado 'async' aqui
+  const handleSave = async () => {
     if (!formData.student || !formData.instructor) return;
 
     const selectedInst = instructors.find(i => i.name === formData.instructor);
@@ -152,7 +157,7 @@ const Agenda: React.FC = () => {
     if (editingItem) {
         isReschedule = true;
         originalStudentName = editingItem.student;
-        newScheduleTime = `${getDayName(new Date(2025,11,15 + formData.day), 'full')} às ${formData.time}`;
+        newScheduleTime = `${getDayNameFromIndex(formData.day)} às ${formData.time}`;
 
         // Ação de Reposição/Remarcação
         // 1. Achar a aula original (raiz da corrente de remarcações).
@@ -495,7 +500,7 @@ const Agenda: React.FC = () => {
             <div className="p-6 border-b border-slate-100 dark:border-gray-800 flex justify-between items-center"><h3 className="font-bold text-slate-800 dark:text-gray-100">{getModalTitle()}</h3><button onClick={() => setIsModalOpen(false)} className="text-gray-500 dark:text-gray-400 hover:text-rose-500"><X size={20} /></button></div>
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2 space-y-1.5"><label className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase ml-1">Dia da Semana</label><select value={formData.day} onChange={e => setFormData({...formData, day: parseInt(e.target.value)})} className="w-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-slate-700 dark:text-gray-200 outline-none focus:border-sky-500 text-sm">{[0,1,2,3,4,5,6].map(d => <option key={d} value={d}>{getDayName(new Date(2025,11,15+d), 'full')}</option>)}</select></div>
+                <div className="col-span-2 space-y-1.5"><label className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase ml-1">Dia da Semana</label><select value={formData.day} onChange={e => setFormData({...formData, day: parseInt(e.target.value)})} className="w-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-slate-700 dark:text-gray-200 outline-none focus:border-sky-500 text-sm">{[0,1,2,3,4,5,6].map(d => <option key={d} value={d}>{getDayNameFromIndex(d)}</option>)}</select></div>
                 <div className="space-y-1.5"><label className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase ml-1">Horário</label><input type="time" step="3600" value={formData.time} onChange={e => setFormData({...formData, time: e.target.value})} className="w-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-slate-700 dark:text-gray-200 outline-none focus:border-sky-500 text-sm"/></div>
               </div>
               <div className="space-y-1.5">

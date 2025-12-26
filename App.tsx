@@ -135,7 +135,7 @@ const App: React.FC = () => {
           {renderContent()}
 
           <footer className="mt-12 text-center text-xs text-slate-400 dark:text-gray-600 pb-8">
-            © 2025 Powered by <a href="https://cod3-ss.vercel.app/" target="_blank" rel="noopener noreferrer" className="font-semibold text-sky-500 hover:underline">COD3 Software Solution</a>
+            © {new Date().getFullYear()} Powered by <a href="https://cod3-ss.vercel.app/" target="_blank" rel="noopener noreferrer" className="font-semibold text-sky-500 hover:underline">COD3 Software Solutions</a>
           </footer>
         </div>
       </main>

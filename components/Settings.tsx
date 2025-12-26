@@ -1,7 +1,10 @@
+
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { AppContext } from '../AppContext';
-import { Palette, DollarSign, Bell, Save, UploadCloud, Image, Loader2, CheckCircle, Phone, Mail, MapPin, FileText, AlertTriangle, ShieldAlert, CreditCard, Lock, Eye, EyeOff, RefreshCw, X, KeySquare, Info, Zap, Bot, LayoutGrid, Calendar, Layers, Users, GraduationCap, Dumbbell, XCircle } from 'lucide-react';
+// Added 'Check' to the lucide-react imports
+import { Palette, DollarSign, Bell, Save, UploadCloud, Image, Loader2, CheckCircle, Phone, Mail, MapPin, FileText, AlertTriangle, ShieldAlert, CreditCard, Lock, Eye, EyeOff, RefreshCw, X, KeySquare, Info, Zap, Bot, LayoutGrid, Calendar, Layers, Users, GraduationCap, Dumbbell, XCircle, Sparkles, Activity, Stethoscope, Check } from 'lucide-react';
 import SubscriptionModal from './SubscriptionModal';
+import { StudioModality } from '../types';
 
 const Settings: React.FC = () => {
   const { state, dispatch } = useContext(AppContext);
@@ -33,6 +36,13 @@ const Settings: React.FC = () => {
     { key: 'bulkAllocation', label: 'Alocação Rápida', icon: <Zap size={14} /> },
     { key: 'financialModule', label: 'Módulo Financeiro', icon: <DollarSign size={14} /> },
     { key: 'whatsappBot', label: 'Chatbot WhatsApp', icon: <Bot size={14} /> },
+  ];
+
+  const modalities: { id: StudioModality; label: string; icon: React.ReactNode }[] = [
+    { id: 'Pilates', label: 'Pilates', icon: <Dumbbell size={16} /> },
+    { id: 'Yoga', label: 'Yoga', icon: <Sparkles size={16} /> },
+    { id: 'Osteopatia', label: 'Osteopatia', icon: <Activity size={16} /> },
+    { id: 'Fisioterapia', label: 'Fisioterapia', icon: <Stethoscope size={16} /> },
   ];
 
   const showSaveSuccess = () => {
@@ -260,6 +270,44 @@ const Settings: React.FC = () => {
                 </div>
             );
           })()}
+
+          {/* NOVO: Card de Modalidade */}
+          <div className="bg-white dark:bg-gray-900/40 border border-slate-200 dark:border-gray-800 rounded-2xl p-6 shadow-xl shadow-slate-200/50 dark:shadow-none animate-in fade-in flex flex-col">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-500">
+                <LayoutGrid size={20} />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-800 dark:text-gray-100">Modalidade do Estúdio</h3>
+                <p className="text-xs text-slate-500 dark:text-gray-400 font-medium">Tipo de atendimento principal</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2">
+              {modalities.map(mod => {
+                const isActive = settings.modality === mod.id;
+                return (
+                  <button
+                    key={mod.id}
+                    onClick={() => handleSettingsChange({ modality: mod.id })}
+                    className={`flex items-center gap-2 px-3 py-3 rounded-xl border text-xs font-bold transition-all duration-200 ${
+                      isActive 
+                        ? 'bg-sky-500 text-white border-sky-500 shadow-lg shadow-sky-500/20' 
+                        : 'bg-slate-50 dark:bg-gray-800/50 text-slate-500 dark:text-gray-400 border-slate-200 dark:border-gray-700 hover:border-sky-500/50'
+                    }`}
+                  >
+                    <span className={isActive ? 'text-white' : 'text-sky-500'}>{mod.icon}</span>
+                    <span>{mod.label}</span>
+                    {isActive && <Check size={12} className="ml-auto" />}
+                  </button>
+                );
+              })}
+            </div>
+            
+            <p className="mt-4 text-[10px] text-slate-400 dark:text-gray-500 italic text-center">
+              A modalidade selecionada ajusta os termos padrão do sistema.
+            </p>
+          </div>
         </div>
 
         {/* Coluna Direita: Configurações */}
@@ -299,7 +347,7 @@ const Settings: React.FC = () => {
             <div className="p-6 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1.5"><label className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase ml-1">Tipo de Documento</label><div className="flex items-center bg-slate-100 dark:bg-gray-800 rounded-xl border border-slate-200 dark:border-gray-700 p-1"><button onClick={() => handleSettingsChange({ documentType: 'CNPJ' })} className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${settings.documentType === 'CNPJ' ? 'bg-sky-500 text-white shadow-lg' : 'text-slate-500 dark:text-gray-400'}`}>CNPJ</button><button onClick={() => handleSettingsChange({ documentType: 'CPF' })} className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${settings.documentType === 'CPF' ? 'bg-sky-500 text-white shadow-lg' : 'text-slate-500 dark:text-gray-400'}`}>CPF</button></div></div>
-                    <div className="space-y-1.5"><label className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase ml-1">{settings.documentType}</label><input value={settings.document} onChange={e => handleSettingsChange({ document: settings.documentType === 'CNPJ' ? maskCNPJ(e.target.value) : maskCPF(e.target.value) })} className="w-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-slate-700 dark:text-gray-200 outline-none focus:border-sky-500 text-sm" placeholder={settings.documentType === 'CNPJ' ? "00.000.000/0000-00" : "000.000.000-00"} maxLength={settings.documentType === 'CNPJ' ? 18 : 14} /></div>
+                    <div className="space-y-1.5"><label className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase ml-1">{settings.documentType}</label><input value={settings.document} onChange={e => handleSettingsChange({ document: settings.documentType === 'CNPJ' ? maskCNPJ(e.target.value) : maskCPF(e.target.value) })} className="w-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm text-slate-700 dark:text-gray-200 outline-none focus:border-sky-500 text-sm" placeholder={settings.documentType === 'CNPJ' ? "00.000.000/0000-00" : "000.000.000-00"} maxLength={settings.documentType === 'CNPJ' ? 18 : 14} /></div>
                 </div>
                 <div className="space-y-3 pt-6 border-t border-slate-100 dark:border-gray-800">
                     <label className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase ml-1">Senha de Acesso do Administrador</label>

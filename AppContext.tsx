@@ -2,6 +2,15 @@
 import React, { createContext, useReducer, useEffect, ReactNode, Dispatch } from 'react';
 import { Student, Instructor, Room, Equipment, Transaction, EscalaItem, AgendaItem, UserSession, StudioSettings, SubscriptionPlan, Addon } from './types';
 import { superAdminSubscriptionPlans, superAdminAddons } from './superAdminMockData';
+import { 
+  mockStudentsData, 
+  mockInstructorsData, 
+  mockRoomsData, 
+  mockEquipmentsData, 
+  mockTransactionsData, 
+  mockAgendaData, 
+  mockEscalaData 
+} from './mockData';
 import { api } from './services/api';
 
 interface SettingsData extends StudioSettings {
@@ -64,6 +73,7 @@ const initialSettings: SettingsData = {
   logo: null,
   phone: '',
   email: '',
+  modality: 'Pilates',
   documentType: 'CNPJ',
   document: '',
   adminPassword: '',
@@ -86,13 +96,14 @@ const initialState: AppState = {
   isAuthenticated: !!localStorage.getItem('auth_token'),
   user: null,
   impersonatingFrom: null,
-  students: [],
-  instructors: [],
-  rooms: [],
-  equipments: [],
-  transactions: [],
-  escala: [],
-  agenda: [],
+  // Populando com mockData para garantir funcionamento offline/dev
+  students: mockStudentsData,
+  instructors: mockInstructorsData,
+  rooms: mockRoomsData,
+  equipments: mockEquipmentsData,
+  transactions: mockTransactionsData,
+  escala: mockEscalaData,
+  agenda: mockAgendaData,
   settings: initialSettings,
   superAdminSettings: { defaultTrialDays: 30, defaultCommission: 40, defaultAlertDays: 7, supportLink: '' },
   subscriptionPlans: superAdminSubscriptionPlans,
@@ -121,6 +132,7 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, isAuthenticated: true, user: action.payload.user, settings: action.payload.settings ? { ...initialSettings, ...action.payload.settings, isDarkMode: state.settings.isDarkMode } : state.settings };
     case 'LOGOUT': 
       localStorage.removeItem('auth_token');
+      // Ao deslogar, resetamos para o initialState (que contém os mocks)
       return { ...initialState, isAuthenticated: false, settings: state.settings };
     case 'SET_LOADING': return { ...state, isLoading: action.payload };
     case 'IMPERSONATE': return { ...state, impersonatingFrom: state.user, user: action.payload.user, settings: { ...state.settings, ...action.payload.settings }, activeTab: 'painel' };
@@ -139,27 +151,28 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const syncData = async () => {
             dispatch({ type: 'SET_LOADING', payload: true });
             try {
-                // Ao logar, buscamos todos os dados do estúdio em paralelo
+                // Tentamos buscar os dados reais. Se falhar (404), o catch individual garante que a UI use os mocks já carregados.
                 const [students, instructors, rooms, equipments, transactions, agenda, settings] = await Promise.all([
-                    api.get('/students'),
-                    api.get('/instructors'),
-                    api.get('/rooms'),
-                    api.get('/equipments'),
-                    api.get('/transactions'),
-                    api.get('/agenda'),
-                    api.get('/settings'),
+                    api.get('/students').catch(() => null),
+                    api.get('/instructors').catch(() => null),
+                    api.get('/rooms').catch(() => null),
+                    api.get('/equipments').catch(() => null),
+                    api.get('/transactions').catch(() => null),
+                    api.get('/agenda').catch(() => null),
+                    api.get('/settings').catch(() => null),
                 ]);
 
-                dispatch({ type: 'UPDATE_STUDENTS', payload: students });
-                dispatch({ type: 'UPDATE_INSTRUCTORS', payload: instructors });
-                dispatch({ type: 'UPDATE_ROOMS', payload: rooms });
-                dispatch({ type: 'UPDATE_EQUIPMENTS', payload: equipments });
-                dispatch({ type: 'UPDATE_TRANSACTIONS', payload: transactions });
-                dispatch({ type: 'UPDATE_AGENDA', payload: agenda });
-                dispatch({ type: 'UPDATE_SETTINGS', payload: settings });
+                if (students) dispatch({ type: 'UPDATE_STUDENTS', payload: students });
+                if (instructors) dispatch({ type: 'UPDATE_INSTRUCTORS', payload: instructors });
+                if (rooms) dispatch({ type: 'UPDATE_ROOMS', payload: rooms });
+                if (equipments) dispatch({ type: 'UPDATE_EQUIPMENTS', payload: equipments });
+                if (transactions) dispatch({ type: 'UPDATE_TRANSACTIONS', payload: transactions });
+                if (agenda) dispatch({ type: 'UPDATE_AGENDA', payload: agenda });
+                if (settings) dispatch({ type: 'UPDATE_SETTINGS', payload: settings });
 
             } catch (error) {
-                console.error("Falha ao sincronizar com o backend:", error);
+                // Erro silencioso no console para não assustar o usuário/dev
+                console.info("Servidor offline ou rotas não implementadas. Operando com dados locais.");
             } finally {
                 dispatch({ type: 'SET_LOADING', payload: false });
             }

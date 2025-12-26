@@ -9,7 +9,7 @@ const Escala: React.FC = () => {
   const { instructors, escala: escalaItems, equipments, rooms, user } = state;
   
   const [view, setView] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
-  const [currentDate, setCurrentDate] = useState(new Date()); // 22 de Dezembro, 2025
+  const [currentDate, setCurrentDate] = useState(new Date()); 
   const [isInstructorOpen, setIsInstructorOpen] = useState(false);
   const [selectedInstructor, setSelectedInstructor] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -95,6 +95,11 @@ const Escala: React.FC = () => {
       ? ['DOM.', 'SEG.', 'TER.', 'QUA.', 'QUI.', 'SEX.', 'SÁB.']
       : ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
     return names[date.getDay()];
+  };
+
+  const getDayNameFromIndex = (idx: number) => {
+    const days = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'];
+    return days[idx];
   };
   
   const getFullMonthName = (date: Date) => date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
@@ -236,7 +241,7 @@ const Escala: React.FC = () => {
                 }, {});
 
                 return (
-                  <div key={`${time}-${dayIdx}`} className="p-1.5 border-b border-slate-200 dark:border-gray-800 min-h-[80px] relative transition-colors hover:bg-slate-50/50 dark:hover:bg-white/5 group">
+                  <div key={`${time}-${dayIdx}`} className="p-1.5 border-b border-slate-200 border-slate-200 dark:border-gray-800 min-h-[80px] relative transition-colors hover:bg-slate-50/50 dark:hover:bg-white/5 group">
                     <div className="flex flex-col gap-1.5">
                       {Object.values(groupedByInstructor).map((items) => (
                         <GroupedEscalaCard key={items[0].instructor} items={items} onEdit={handleOpenModal} onDelete={handleDeleteClick} />
@@ -378,7 +383,7 @@ const Escala: React.FC = () => {
             <div className="p-6 border-b border-slate-100 dark:border-gray-800 flex justify-between items-center"><h3 className="font-bold text-slate-800 dark:text-gray-100">{editingItem ? 'Editar Alocação' : 'Nova Alocação'}</h3><button onClick={() => setIsModalOpen(false)} className="text-gray-500 dark:text-gray-400 hover:text-rose-500"><X size={20} /></button></div>
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-3 gap-4">
-                  <div className="col-span-2 space-y-1.5"><label className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase ml-1">Dia</label><select value={formData.day} onChange={e => setFormData({...formData, day: parseInt(e.target.value)})} className="w-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-slate-700 dark:text-gray-200 outline-none focus:border-sky-500 text-sm">{[0,1,2,3,4,5,6].map(d => <option key={d} value={d}>{getDayName(new Date(2025,11,15+d), 'full')}</option>)}</select></div>
+                  <div className="col-span-2 space-y-1.5"><label className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase ml-1">Dia</label><select value={formData.day} onChange={e => setFormData({...formData, day: parseInt(e.target.value)})} className="w-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-slate-700 dark:text-gray-200 outline-none focus:border-sky-500 text-sm">{[0,1,2,3,4,5,6].map(d => <option key={d} value={d}>{getDayNameFromIndex(d)}</option>)}</select></div>
                   <div className="space-y-1.5"><label className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase ml-1">Horário</label><input type="time" step="3600" value={formData.time} onChange={e => setFormData({...formData, time: e.target.value})} className="w-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-slate-700 dark:text-gray-200 outline-none focus:border-sky-500 text-sm"/></div>
               </div>
               <div className="space-y-1.5"><label className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase ml-1">Instrutor</label><select value={formData.instructor} onChange={e => setFormData({...formData, instructor: e.target.value})} className="w-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-slate-700 dark:text-gray-200 outline-none focus:border-sky-500 text-sm">{instructors.map(i => <option key={i.id} value={i.name}>{i.name}</option>)}</select></div>
@@ -398,7 +403,7 @@ const Escala: React.FC = () => {
           <div className="bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-2xl w-full max-w-md shadow-2xl animate-in zoom-in-95">
             <div className="p-6 border-b border-slate-100 dark:border-gray-800 flex justify-between items-center"><h3 className="font-bold text-slate-800 dark:text-gray-100">Alocação Rápida em Lote</h3><button onClick={() => setIsBulkModalOpen(false)} className="text-gray-500 dark:text-gray-400 hover:text-rose-500"><X size={20} /></button></div>
             <div className="p-6 space-y-4">
-              <div className="space-y-1.5"><label className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase ml-1">Dia da Semana</label><select value={bulkFormData.day} onChange={e => setBulkFormData({...bulkFormData, day: parseInt(e.target.value)})} className="w-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-slate-700 dark:text-gray-200 outline-none focus:border-sky-500 text-sm">{[0,1,2,3,4,5,6].map(d => <option key={d} value={d}>{getDayName(new Date(2025,11,15+d), 'full')}</option>)}</select></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase ml-1">Dia da Semana</label><select value={bulkFormData.day} onChange={e => setBulkFormData({...bulkFormData, day: parseInt(e.target.value)})} className="w-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-slate-700 dark:text-gray-200 outline-none focus:border-sky-500 text-sm">{[0,1,2,3,4,5,6].map(d => <option key={d} value={d}>{getDayNameFromIndex(d)}</option>)}</select></div>
               <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5"><label className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase ml-1">Do Horário</label><input type="time" step="3600" value={bulkFormData.startTime} onChange={e => setBulkFormData({...bulkFormData, startTime: e.target.value})} className="w-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-slate-700 dark:text-gray-200 outline-none focus:border-sky-500 text-sm"/></div>
                   <div className="space-y-1.5"><label className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase ml-1">Até o Horário</label><input type="time" step="3600" value={bulkFormData.endTime} onChange={e => setBulkFormData({...bulkFormData, endTime: e.target.value})} className="w-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-slate-700 dark:text-gray-200 outline-none focus:border-sky-500 text-sm"/></div>

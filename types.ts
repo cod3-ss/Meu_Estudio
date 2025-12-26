@@ -183,11 +183,14 @@ export interface ChatbotSettings {
   };
 }
 
+export type StudioModality = 'Pilates' | 'Yoga' | 'Osteopatia' | 'Fisioterapia';
+
 export interface StudioSettings {
   appName: string;
   logo: string | null;
   phone: string;
   email: string;
+  modality?: StudioModality;
   documentType: 'CPF' | 'CNPJ';
   document: string;
   adminPassword?: string;

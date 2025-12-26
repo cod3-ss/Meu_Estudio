@@ -1,5 +1,6 @@
 
-const API_URL = 'https://sua-api.seu-dominio.com'; // URL que você configurará no Easypanel
+// O Vite usará o proxy configurado em vite.config.ts para redirecionar /api para o backend real.
+const API_URL = (import.meta as any).env?.VITE_API_URL || '/api';
 
 export const api = {
   async request(endpoint: string, method = 'GET', body?: any) {
@@ -13,24 +14,30 @@ export const api = {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      method,
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    try {
+      const response = await fetch(`${API_URL}${endpoint}`, {
+        method,
+        headers,
+        body: body ? JSON.stringify(body) : undefined,
+      });
 
-    if (response.status === 401) {
-      localStorage.removeItem('auth_token');
-      window.location.reload();
-      throw new Error('Sessão expirada');
+      if (response.status === 401) {
+        localStorage.removeItem('auth_token');
+        throw new Error('Sessão expirada');
+      }
+
+      if (!response.ok) {
+        // Retornamos um erro estruturado que pode ser capturado silenciosamente
+        const errorData = await response.json().catch(() => ({}));
+        const errorMsg = errorData.message || `Erro ${response.status}: Falha na requisição`;
+        throw new Error(errorMsg);
+      }
+
+      return response.json();
+    } catch (error) {
+      // Removido o console.error agressivo para que o AppContext decida como logar falhas de conexão
+      throw error;
     }
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Erro na requisição');
-    }
-
-    return response.json();
   },
 
   get: (endpoint: string) => api.request(endpoint, 'GET'),
