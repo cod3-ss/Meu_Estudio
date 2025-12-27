@@ -1,5 +1,4 @@
-
-import React, { createContext, useReducer, useEffect, ReactNode, Dispatch } from 'react';
+import React, { createContext, useReducer, useEffect, ReactNode, Dispatch, useRef } from 'react';
 import { Student, Instructor, Room, Equipment, Transaction, EscalaItem, AgendaItem, UserSession, StudioSettings, SubscriptionPlan, Addon } from './types';
 import { superAdminSubscriptionPlans, superAdminAddons } from './superAdminMockData';
 import { 
@@ -12,6 +11,8 @@ import {
   mockEscalaData 
 } from './mockData';
 import { api } from './services/api';
+
+const STORAGE_KEY = 'meu_estudio_v1_data';
 
 interface SettingsData extends StudioSettings {
   isDarkMode: boolean;
@@ -96,7 +97,6 @@ const initialState: AppState = {
   isAuthenticated: !!localStorage.getItem('auth_token'),
   user: null,
   impersonatingFrom: null,
-  // Populando com mockData para garantir funcionamento offline/dev
   students: mockStudentsData,
   instructors: mockInstructorsData,
   rooms: mockRoomsData,
@@ -132,11 +132,20 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, isAuthenticated: true, user: action.payload.user, settings: action.payload.settings ? { ...initialSettings, ...action.payload.settings, isDarkMode: state.settings.isDarkMode } : state.settings };
     case 'LOGOUT': 
       localStorage.removeItem('auth_token');
-      // Ao deslogar, resetamos para o initialState (que contém os mocks)
       return { ...initialState, isAuthenticated: false, settings: state.settings };
     case 'SET_LOADING': return { ...state, isLoading: action.payload };
+    case 'PASSWORD_CHANGED': return { ...state, passwordJustChanged: true };
+    case 'UPDATE_SUBSCRIPTION': 
+        if (!state.user) return state;
+        return { 
+            ...state, 
+            user: { ...state.user, subscriptionPlanId: action.payload.planId },
+            settings: { ...state.settings, purchasedAddons: action.payload.purchasedAddons }
+        };
     case 'IMPERSONATE': return { ...state, impersonatingFrom: state.user, user: action.payload.user, settings: { ...state.settings, ...action.payload.settings }, activeTab: 'painel' };
-    case 'STOP_IMPERSONATING': return { ...state, user: state.impersonatingFrom, impersonatingFrom: null, activeTab: 'clients' };
+    case 'STOP_IMPERSONATING': return { ...state, user: state.impersonatingFrom, impersonatingFrom: null, activeTab: 'painel' };
+    case 'UPDATE_SUBSCRIPTION_PLANS': return { ...state, subscriptionPlans: action.payload };
+    case 'UPDATE_ADDONS': return { ...state, addons: action.payload };
     default: return state;
   }
 };
@@ -145,13 +154,55 @@ export const AppContext = createContext<{ state: AppState; dispatch: Dispatch<Ac
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
-  
+  const isInitialMount = useRef(true);
+
+  // 1. Carregar dados do LocalStorage ao iniciar
   useEffect(() => {
-    if (state.isAuthenticated) {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        dispatch({ type: 'SET_STATE', payload: parsed });
+      } catch (e) {
+        console.error("Erro ao carregar dados locais", e);
+      }
+    }
+  }, []);
+
+  // 2. Salvar dados no LocalStorage sempre que o estado mudar (exceto flags temporárias)
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    const dataToSave = {
+      students: state.students,
+      instructors: state.instructors,
+      rooms: state.rooms,
+      equipments: state.equipments,
+      transactions: state.transactions,
+      escala: state.escala,
+      agenda: state.agenda,
+      settings: state.settings,
+      superAdminSettings: state.superAdminSettings,
+      subscriptionPlans: state.subscriptionPlans,
+      addons: state.addons
+    };
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+  }, [
+    state.students, state.instructors, state.rooms, state.equipments, 
+    state.transactions, state.escala, state.agenda, state.settings,
+    state.superAdminSettings, state.subscriptionPlans, state.addons
+  ]);
+
+  // 3. Sincronização com API (Opcional/Mock)
+  useEffect(() => {
+    if (state.isAuthenticated && !state.impersonatingFrom) {
         const syncData = async () => {
             dispatch({ type: 'SET_LOADING', payload: true });
             try {
-                // Tentamos buscar os dados reais. Se falhar (404), o catch individual garante que a UI use os mocks já carregados.
                 const [students, instructors, rooms, equipments, transactions, agenda, settings] = await Promise.all([
                     api.get('/students').catch(() => null),
                     api.get('/instructors').catch(() => null),
@@ -171,13 +222,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 if (settings) dispatch({ type: 'UPDATE_SETTINGS', payload: settings });
 
             } catch (error) {
-                // Erro silencioso no console para não assustar o usuário/dev
-                console.info("Servidor offline ou rotas não implementadas. Operando com dados locais.");
+                console.info("Servidor offline. Operando com persistência local.");
             } finally {
                 dispatch({ type: 'SET_LOADING', payload: false });
             }
         };
-        syncData();
+        // Só sincroniza se for o admin real (não personificado) e se desejar sobrescrever o local
+        // syncData(); 
     }
   }, [state.isAuthenticated]);
 
