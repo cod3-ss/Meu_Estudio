@@ -143,7 +143,7 @@ const Login: React.FC = () => {
 
       <div className="w-full max-w-md z-10 animate-in fade-in zoom-in duration-500">
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-black text-sky-500 tracking-tighter mb-2">{settings.appName}</h1>
+          <h1 className="text-4xl font-black text-sky-500 tracking-tighter mb-2">Meu Estúdio</h1>
           <p className="text-sm font-medium text-slate-500 dark:text-gray-400 uppercase tracking-widest">Gestão Inteligente de Estúdio</p>
         </div>
 
